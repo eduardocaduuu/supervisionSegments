@@ -109,11 +109,15 @@ export default function Dashboard() {
     )
   }
 
+  // Get risk threshold from config (default 30%)
+  const riscoPercentual = data.riscoPercentual || 30
+
   // Filter by KPI card selection
   let filteredRevendedores = data.revendedores.filter(r => {
     // First apply KPI filter
     if (activeFilter === 'perto_subir' && r.segmentacao.progressoSubir < 80) return false
-    if (activeFilter === 'em_risco' && !r.segmentacao.emRisco) return false
+    // Use same logic as backend KPI: progressoManter < riscoPercentual
+    if (activeFilter === 'em_risco' && r.segmentacao.progressoManter >= riscoPercentual) return false
 
     // Then apply search
     if (searchTerm) {

@@ -295,6 +295,7 @@ app.get('/api/dashboard', async (req, res) => {
       snapshotAtivo,
       cicloAtual: config.cicloAtual,
       representatividade: config.representatividade,
+      riscoPercentual: config.riscoPercentual,
       kpis: {
         totalSetor,
         qtdRevendedores,
