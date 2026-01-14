@@ -4,7 +4,10 @@
       "Bash(git init:*)",
       "Bash(git remote add:*)",
       "Bash(git add:*)",
-      "Bash(git commit -m \"$\\(cat <<''EOF''\nfeat: Implement complete supervision goals management system\n\n- Node.js + Express backend with CSV-based data storage\n- React + Vite frontend with modern UI/UX\n- Admin panel with CSV upload \\(morning/afternoon snapshots\\)\n- Supervisor dashboard with KPIs, progress tracking, and charts\n- Segmentation rules \\(Bronze to Diamond\\) with progress calculations\n- Morning vs afternoon comparison feature\n- Configurable cycle representativity percentages\n- Cookie-based authentication for admin area\n- Ready for Render deployment \\(free tier\\)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nfeat: Implement complete supervision goals management system\n\n- Node.js + Express backend with CSV-based data storage\n- React + Vite frontend with modern UI/UX\n- Admin panel with CSV upload \\(morning/afternoon snapshots\\)\n- Supervisor dashboard with KPIs, progress tracking, and charts\n- Segmentation rules \\(Bronze to Diamond\\) with progress calculations\n- Morning vs afternoon comparison feature\n- Configurable cycle representativity percentages\n- Cookie-based authentication for admin area\n- Ready for Render deployment \\(free tier\\)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git branch:*)",
+      "Bash(git push:*)",
+      "Bash(git commit:*)"
     ]
   }
 }
