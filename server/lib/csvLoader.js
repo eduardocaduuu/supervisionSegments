@@ -7,6 +7,70 @@ const cache = {
   tarde: { data: null, lastModified: null }
 };
 
+// Mapeamento de nome do setor para codigo
+// Baseado na lista fornecida no requisito
+const SETOR_MAP = {
+  'PRATA / Palmeira / Igaci': '1260',
+  'PLATINA & OURO / Palmeira / Igaci': '4005',
+  'PRATA 2 / Major / Cacimbinhas / Estrela / Quebrangulo / Minador': '8238',
+  'SUPERVISORA DE RELACIONAMENTO PALMEIRA DOS INDIOS': '8239',
+  'FVC - 13706 - A - ALCINA MARIA 1': '14210',
+  'FVC - 13706- BER - ALCINA MARIA': '16283',
+  'FVC - 13706 - A - ALCINA MARIA 2': '16289',
+  'Setor Multimarcas - PALMEIRA DOS INDIOS - CP ALCINA MARIA': '16471',
+  'PLATINA / Palmeira': '17539',
+  'FVC - 13706 - ALCINA MARIA REINÍCIOS': '18787',
+  'FVC - 13706 - ALCINA MARIA REINICIOS': '18787',
+  '13706 - ALCINA MARIA - SETOR DEVOLUÇÃO': '19699',
+  '13706 - ALCINA MARIA - SETOR DEVOLUCAO': '19699',
+  'BRONZE / Todas as cidades 13706': '23032',
+  'SETOR PADRÃO': '23336',
+  'SETOR PADRAO': '23336',
+  'INICIOS CENTRAL 13706': '15775',
+  'SUPERVISORA DE RELACIONAMENTO': '1414',
+  'PRATA 2 / Coruripe / Piaçabuçu / F. Deserto / São Sebastião': '1415',
+  'PRATA 2 / Coruripe / Piacabucu / F. Deserto / Sao Sebastiao': '1415',
+  'BRONZE / Todas as cidades 13707': '3124',
+  'BRONZE 2 / Todas as cidades 13707': '8317',
+  'PLATINA / Penedo': '9540',
+  'FVC - 13707 - A - ALCINA MARIA 1': '14211',
+  'PRATA 3 / I.Nova / Junqueiro / Olho D\' Agua / Porto Real / São Brás': '14244',
+  'PRATA 3 / I.Nova / Junqueiro / Olho D Agua / Porto Real / Sao Bras': '14244',
+  'PRATA 1 / Penedo': '14245',
+  'OURO / Penedo': '14246',
+  'FVC - 13707 - A - ALCINA MARIA 2': '15242',
+  'INICIOS CENTRAL 13707': '15774',
+  'FVC - 13707- BER - ALCINA MARIA': '16284',
+  'Setor Multimarcas - PENEDO - CP ALCINA MARIA': '16472',
+  'FVC - 13707 - A - ALCINA MARIA 3': '16635',
+  'FVC - 13707 - ALCINA MARIA REINÍCIOS': '18788',
+  'FVC - 13707 - ALCINA MARIA REINICIOS': '18788',
+  '13707 - ALCINA MARIA - SETOR DEVOLUÇÃO': '19698',
+  '13707 - ALCINA MARIA - SETOR DEVOLUCAO': '19698'
+};
+
+// Funcao para encontrar o codigo do setor pelo nome (busca parcial)
+function findSetorCode(setorName) {
+  if (!setorName) return null;
+  const normalized = setorName.toString().trim();
+
+  // Primeiro tenta match exato
+  if (SETOR_MAP[normalized]) return SETOR_MAP[normalized];
+
+  // Depois tenta match parcial (o nome do CSV pode ser parte da chave ou vice-versa)
+  for (const [key, code] of Object.entries(SETOR_MAP)) {
+    // Remove espacos extras e compara
+    const keyClean = key.replace(/\s+/g, ' ').trim().toLowerCase();
+    const nameClean = normalized.replace(/\s+/g, ' ').trim().toLowerCase();
+
+    if (keyClean.includes(nameClean) || nameClean.includes(keyClean)) {
+      return code;
+    }
+  }
+
+  return null;
+}
+
 /**
  * Converte valor monetário brasileiro para número
  * Ex: "1.234,56" -> 1234.56
@@ -43,26 +107,25 @@ function parseMonetaryValue(value) {
 
 /**
  * Extrai o código do setor do texto completo
+ * Primeiro tenta usar o mapeamento de nomes para codigos
  * Suporta formatos:
  * - "14210 FVC - 13706 - A - ALCINA MARIA 1" -> "14210"
- * - "FVC - 13707 - A - ALCINA MARIA 1" -> "13707"
- * - "PLATINA & OURO / Palmeira..." -> procura por 5 digitos
+ * - "FVC - 13707 - A - ALCINA MARIA 1" -> "14211" (via mapeamento)
  */
 function extractSetorId(setorText) {
   if (!setorText) return null;
   const text = setorText.toString().trim();
 
-  // Primeiro tenta pegar numero no inicio
+  // Primeiro tenta pegar numero no inicio (formato antigo)
   const matchStart = text.match(/^(\d+)/);
   if (matchStart) return matchStart[1];
 
-  // Depois procura por codigo de 5 digitos (13706, 13707, etc)
-  const match5Digits = text.match(/\b(\d{5})\b/);
-  if (match5Digits) return match5Digits[1];
+  // Depois tenta usar o mapeamento de nomes
+  const mappedCode = findSetorCode(text);
+  if (mappedCode) return mappedCode;
 
-  // Por ultimo, qualquer sequencia de digitos
-  const matchAny = text.match(/(\d+)/);
-  return matchAny ? matchAny[1] : null;
+  // Fallback: retorna null se nao encontrar
+  return null;
 }
 
 /**
@@ -149,22 +212,26 @@ async function loadCSV(filePath) {
 
 /**
  * Agrega dados por revendedor para um setor específico
- * setorId pode ser: codigo numerico (13707), parte do nome, ou nome completo
+ * setorId pode ser: codigo numerico (14210, 14211), parte do nome, ou nome completo
  */
 function getAggregatedData(data, setorId) {
-  const searchTerm = setorId.toString().toLowerCase().trim();
+  const searchTerm = setorId.toString().trim();
+  const searchTermLower = searchTerm.toLowerCase();
 
   // Filtra pelo setor - busca flexivel
   const setorData = data.filter(row => {
-    // Match por setorId extraido
-    if (row.setorId === setorId) return true;
+    // Match por setorId extraido (codigo mapeado)
+    if (row.setorId && row.setorId === searchTerm) return true;
 
     // Match por texto do setor (case insensitive, parcial)
     const setorLower = (row.setor || '').toLowerCase();
-    if (setorLower.includes(searchTerm)) return true;
+    if (setorLower.includes(searchTermLower)) return true;
 
-    // Match por codigo 5 digitos no texto do setor
-    if (/^\d{5}$/.test(setorId) && setorLower.includes(setorId)) return true;
+    // Se o usuario digitou um codigo, verifica se o setor mapeia para esse codigo
+    if (/^\d+$/.test(searchTerm)) {
+      const mappedCode = findSetorCode(row.setor);
+      if (mappedCode === searchTerm) return true;
+    }
 
     return false;
   });
