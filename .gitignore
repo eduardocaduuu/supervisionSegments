@@ -22,6 +22,5 @@ Thumbs.db
 .vscode/
 .idea/
 
-# Data files (keep structure but ignore uploads)
-server/data/*.csv
-!server/data/sample.csv
+# Data files - keep snapshots for deploy
+# server/data/*.csv

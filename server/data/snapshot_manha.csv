@@ -1,0 +1,39 @@
+Setor;CodigoRevendedor;NomeRevendedora;CicloFaturamento;CodigoProduto;NomeProduto;QuantidadeItens;ValorPraticado;Tipo
+14210 FVC - 13706 - A - ALCINA MARIA 1;REV001;Maria Silva Santos;01/2026;PROD001;Perfume Floral;2;350,00;Venda
+14210 FVC - 13706 - A - ALCINA MARIA 1;REV001;Maria Silva Santos;01/2026;PROD002;Creme Hidratante;1;89,90;Venda
+14210 FVC - 13706 - A - ALCINA MARIA 1;REV001;Maria Silva Santos;01/2026;PROD003;Batom Matte;3;120,00;Venda
+14210 FVC - 13706 - A - ALCINA MARIA 1;REV001;Maria Silva Santos;02/2026;PROD004;Kit Maquiagem;1;450,00;Venda
+14210 FVC - 13706 - A - ALCINA MARIA 1;REV001;Maria Silva Santos;02/2026;PROD005;Shampoo Premium;2;75,00;Venda
+14210 FVC - 13706 - A - ALCINA MARIA 1;REV002;Ana Paula Oliveira;01/2026;PROD001;Perfume Floral;5;875,00;Venda
+14210 FVC - 13706 - A - ALCINA MARIA 1;REV002;Ana Paula Oliveira;01/2026;PROD008;Desodorante;10;250,00;Venda
+14210 FVC - 13706 - A - ALCINA MARIA 1;REV002;Ana Paula Oliveira;02/2026;PROD009;Base Liquida;4;320,00;Venda
+14210 FVC - 13706 - A - ALCINA MARIA 1;REV002;Ana Paula Oliveira;02/2026;PROD010;Po Compacto;3;180,00;Venda
+14210 FVC - 13706 - A - ALCINA MARIA 1;REV003;Fernanda Costa Lima;01/2026;PROD014;Perfume Masculino;8;2800,00;Venda
+14210 FVC - 13706 - A - ALCINA MARIA 1;REV003;Fernanda Costa Lima;01/2026;PROD015;Pos Barba;10;350,00;Venda
+14210 FVC - 13706 - A - ALCINA MARIA 1;REV003;Fernanda Costa Lima;02/2026;PROD016;Gel Fixador;15;225,00;Venda
+14210 FVC - 13706 - A - ALCINA MARIA 1;REV003;Fernanda Costa Lima;02/2026;PROD017;Creme Barbear;8;160,00;Venda
+14210 FVC - 13706 - A - ALCINA MARIA 1;REV003;Fernanda Costa Lima;03/2026;PROD018;Kit Presente;5;1250,00;Venda
+14210 FVC - 13706 - A - ALCINA MARIA 1;REV004;Juliana Pereira Souza;01/2026;PROD022;Kit Natal;3;1500,00;Venda
+14210 FVC - 13706 - A - ALCINA MARIA 1;REV004;Juliana Pereira Souza;01/2026;PROD023;Perfume Premium;2;980,00;Venda
+14210 FVC - 13706 - A - ALCINA MARIA 1;REV004;Juliana Pereira Souza;02/2026;PROD024;Creme Anti Idade;4;720,00;Venda
+14210 FVC - 13706 - A - ALCINA MARIA 1;REV004;Juliana Pereira Souza;02/2026;PROD025;Serum Vitamina C;6;540,00;Venda
+14210 FVC - 13706 - A - ALCINA MARIA 1;REV004;Juliana Pereira Souza;03/2026;PROD026;Protetor Solar;10;650,00;Venda
+14210 FVC - 13706 - A - ALCINA MARIA 1;REV005;Patricia Almeida Dias;01/2026;PROD034;Linha Infantil;15;1125,00;Venda
+14210 FVC - 13706 - A - ALCINA MARIA 1;REV005;Patricia Almeida Dias;01/2026;PROD035;Colonia Baby;20;600,00;Venda
+14210 FVC - 13706 - A - ALCINA MARIA 1;REV005;Patricia Almeida Dias;02/2026;PROD036;Shampoo Kids;25;375,00;Venda
+14210 FVC - 13706 - A - ALCINA MARIA 1;REV006;Camila Rodrigues Ferreira;01/2026;PROD040;Perfume Intenso;1;450,00;Venda
+14210 FVC - 13706 - A - ALCINA MARIA 1;REV006;Camila Rodrigues Ferreira;01/2026;PROD041;Creme Corpo;2;180,00;Venda
+14210 FVC - 13706 - A - ALCINA MARIA 1;REV007;Amanda Martins Gomes;01/2026;PROD043;Super Kit;10;15000,00;Venda
+14210 FVC - 13706 - A - ALCINA MARIA 1;REV007;Amanda Martins Gomes;02/2026;PROD044;Kit Revenda;8;12000,00;Venda
+14210 FVC - 13706 - A - ALCINA MARIA 1;REV007;Amanda Martins Gomes;03/2026;PROD045;Mega Promocao;6;9000,00;Venda
+14210 FVC - 13706 - A - ALCINA MARIA 1;REV007;Amanda Martins Gomes;04/2026;PROD046;Kit Especial;5;7500,00;Venda
+14210 FVC - 13706 - A - ALCINA MARIA 1;REV007;Amanda Martins Gomes;05/2026;PROD047;Colecao Verao;4;6000,00;Venda
+14210 FVC - 13706 - A - ALCINA MARIA 1;REV008;Beatriz Nascimento;01/2026;PROD052;Batom Luxo;50;2500,00;Venda
+14210 FVC - 13706 - A - ALCINA MARIA 1;REV008;Beatriz Nascimento;02/2026;PROD053;Gloss Labial;40;1600,00;Venda
+14210 FVC - 13706 - A - ALCINA MARIA 1;REV009;Carla Souza Mendes;01/2026;PROD057;Produto X;1;150,00;Venda
+14210 FVC - 13706 - A - ALCINA MARIA 1;REV010;Daniela Barbosa;01/2026;PROD059;Kit Bronze;2;5800,00;Venda
+3124 BRONZE / Todas as cidades 13707;REV101;Lucia Ferreira;01/2026;PROD061;Perfume Basic;3;525,00;Venda
+3124 BRONZE / Todas as cidades 13707;REV101;Lucia Ferreira;02/2026;PROD062;Creme Maos;5;125,00;Venda
+3124 BRONZE / Todas as cidades 13707;REV102;Mariana Costa;01/2026;PROD064;Kit Iniciante;2;1200,00;Venda
+3124 BRONZE / Todas as cidades 13707;REV102;Mariana Costa;02/2026;PROD065;Sabonete Glicerina;10;150,00;Venda
+3124 BRONZE / Todas as cidades 13707;REV103;Sandra Lima;01/2026;PROD067;Colonia Suave;4;280,00;Venda

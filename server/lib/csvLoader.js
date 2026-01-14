@@ -43,12 +43,26 @@ function parseMonetaryValue(value) {
 
 /**
  * Extrai o código do setor do texto completo
- * Ex: "14210 FVC - 13706 - A - ALCINA MARIA 1" -> "14210"
+ * Suporta formatos:
+ * - "14210 FVC - 13706 - A - ALCINA MARIA 1" -> "14210"
+ * - "FVC - 13707 - A - ALCINA MARIA 1" -> "13707"
+ * - "PLATINA & OURO / Palmeira..." -> procura por 5 digitos
  */
 function extractSetorId(setorText) {
   if (!setorText) return null;
-  const match = setorText.toString().match(/^(\d+)/);
-  return match ? match[1] : null;
+  const text = setorText.toString().trim();
+
+  // Primeiro tenta pegar numero no inicio
+  const matchStart = text.match(/^(\d+)/);
+  if (matchStart) return matchStart[1];
+
+  // Depois procura por codigo de 5 digitos (13706, 13707, etc)
+  const match5Digits = text.match(/\b(\d{5})\b/);
+  if (match5Digits) return match5Digits[1];
+
+  // Por ultimo, qualquer sequencia de digitos
+  const matchAny = text.match(/(\d+)/);
+  return matchAny ? matchAny[1] : null;
 }
 
 /**
@@ -71,11 +85,18 @@ async function loadCSV(filePath) {
 
     const fileContent = fs.readFileSync(filePath, 'utf-8');
 
-    // Detecta delimitador
+    // Detecta delimitador (suporta |, ; e ,)
     const firstLine = fileContent.split('\n')[0];
+    const pipeCount = (firstLine.match(/\|/g) || []).length;
     const semicolonCount = (firstLine.match(/;/g) || []).length;
     const commaCount = (firstLine.match(/,/g) || []).length;
-    const delimiter = semicolonCount > commaCount ? ';' : ',';
+
+    let delimiter = ',';
+    if (pipeCount > semicolonCount && pipeCount > commaCount) {
+      delimiter = '|';
+    } else if (semicolonCount > commaCount) {
+      delimiter = ';';
+    }
 
     Papa.parse(fileContent, {
       header: true,
@@ -90,7 +111,7 @@ async function loadCSV(filePath) {
         const normalizedData = results.data.map(row => {
           // Tenta encontrar as colunas com diferentes grafias
           const setor = row.Setor || row.setor || row.SETOR || '';
-          const codigoRevendedor = row.CodigoRevendedor || row.codigoRevendedor || row.CODIGOREVENDEDOR || row['Código Revendedor'] || '';
+          const codigoRevendedor = row.CodigoRevendedor || row.CodigoRevendedora || row.codigoRevendedor || row.codigoRevendedora || row.CODIGOREVENDEDOR || row.CODIGOREVENDEDORA || row['Código Revendedor'] || row['Código Revendedora'] || '';
           const nomeRevendedora = row.NomeRevendedora || row.nomeRevendedora || row.NOMEREVENDEDORA || row['Nome Revendedora'] || '';
           const cicloFaturamento = row.CicloFaturamento || row.cicloFaturamento || row.CICLOFATURAMENTO || row['Ciclo Faturamento'] || '';
           const codigoProduto = row.CodigoProduto || row.codigoProduto || row.CODIGOPRODUTO || row['Código Produto'] || '';
@@ -128,10 +149,25 @@ async function loadCSV(filePath) {
 
 /**
  * Agrega dados por revendedor para um setor específico
+ * setorId pode ser: codigo numerico (13707), parte do nome, ou nome completo
  */
 function getAggregatedData(data, setorId) {
-  // Filtra pelo setor
-  const setorData = data.filter(row => row.setorId === setorId);
+  const searchTerm = setorId.toString().toLowerCase().trim();
+
+  // Filtra pelo setor - busca flexivel
+  const setorData = data.filter(row => {
+    // Match por setorId extraido
+    if (row.setorId === setorId) return true;
+
+    // Match por texto do setor (case insensitive, parcial)
+    const setorLower = (row.setor || '').toLowerCase();
+    if (setorLower.includes(searchTerm)) return true;
+
+    // Match por codigo 5 digitos no texto do setor
+    if (/^\d{5}$/.test(setorId) && setorLower.includes(setorId)) return true;
+
+    return false;
+  });
 
   if (setorData.length === 0) {
     return null;
