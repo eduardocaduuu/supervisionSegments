@@ -5,6 +5,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Cell
 } from 'recharts'
+import * as XLSX from 'xlsx'
 
 export default function Dashboard() {
   const { setorId } = useParams()
@@ -14,6 +15,7 @@ export default function Dashboard() {
   const [searchTerm, setSearchTerm] = useState('')
   const [sortBy, setSortBy] = useState('nome')
   const [activeTab, setActiveTab] = useState('cards')
+  const [activeFilter, setActiveFilter] = useState('todos') // todos, perto_subir, em_risco
 
   useEffect(() => {
     loadDashboard()
@@ -31,6 +33,46 @@ export default function Dashboard() {
     } finally {
       setLoading(false)
     }
+  }
+
+  // Export to Excel
+  const exportToExcel = () => {
+    if (!data || !data.revendedores) return
+
+    const exportData = data.revendedores.map(rev => ({
+      'Codigo': rev.codigoRevendedor,
+      'Nome': rev.nomeRevendedora,
+      'Segmento': rev.segmentacao.segmentoAtual,
+      'Total Comprado': rev.totalGeral,
+      'Progresso Manter (%)': rev.segmentacao.progressoManter,
+      'Progresso Subir (%)': rev.segmentacao.progressoSubir,
+      'Falta para Manter': rev.segmentacao.faltaManter,
+      'Falta para Subir': rev.segmentacao.faltaSubir || '-',
+      'Proximo Segmento': rev.segmentacao.proximoSegmento || '-',
+      'Status': rev.segmentacao.emRisco ? 'EM RISCO' : (rev.segmentacao.progressoSubir >= 80 ? 'PERTO DE SUBIR' : 'NORMAL')
+    }))
+
+    const ws = XLSX.utils.json_to_sheet(exportData)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Revendedores')
+
+    // Auto-size columns
+    const colWidths = [
+      { wch: 10 }, // Codigo
+      { wch: 35 }, // Nome
+      { wch: 12 }, // Segmento
+      { wch: 15 }, // Total
+      { wch: 18 }, // Progresso Manter
+      { wch: 18 }, // Progresso Subir
+      { wch: 18 }, // Falta Manter
+      { wch: 18 }, // Falta Subir
+      { wch: 15 }, // Proximo
+      { wch: 15 }  // Status
+    ]
+    ws['!cols'] = colWidths
+
+    const fileName = `revendedores_setor_${setorId}_${new Date().toISOString().split('T')[0]}.xlsx`
+    XLSX.writeFile(wb, fileName)
   }
 
   if (loading) {
@@ -67,11 +109,21 @@ export default function Dashboard() {
     )
   }
 
-  // Filter and sort revendedores
-  let filteredRevendedores = data.revendedores.filter(r =>
-    r.nomeRevendedora.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    r.codigoRevendedor.includes(searchTerm)
-  )
+  // Filter by KPI card selection
+  let filteredRevendedores = data.revendedores.filter(r => {
+    // First apply KPI filter
+    if (activeFilter === 'perto_subir' && r.segmentacao.progressoSubir < 80) return false
+    if (activeFilter === 'em_risco' && !r.segmentacao.emRisco) return false
+
+    // Then apply search
+    if (searchTerm) {
+      const matchesSearch = r.nomeRevendedora.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        r.codigoRevendedor.includes(searchTerm)
+      if (!matchesSearch) return false
+    }
+
+    return true
+  })
 
   // Sort
   filteredRevendedores = [...filteredRevendedores].sort((a, b) => {
@@ -103,15 +155,22 @@ export default function Dashboard() {
     total: r.totalGeral
   }))
 
-  const SEGMENT_COLORS = {
-    'Iniciante': '#9CA3AF',
-    'Bronze': '#CD7F32',
-    'Prata': '#C0C0C0',
-    'Ouro': '#FFD700',
-    'Platina': '#E5E4E2',
-    'Rubi': '#E0115F',
-    'Esmeralda': '#50C878',
-    'Diamante': '#B9F2FF'
+  // Handle KPI card click
+  const handleKpiClick = (filter) => {
+    if (activeFilter === filter) {
+      setActiveFilter('todos') // Toggle off if same filter clicked
+    } else {
+      setActiveFilter(filter)
+    }
+  }
+
+  // Get filter label
+  const getFilterLabel = () => {
+    switch (activeFilter) {
+      case 'perto_subir': return 'Perto de Subir'
+      case 'em_risco': return 'Em Risco'
+      default: return null
+    }
   }
 
   return (
@@ -126,6 +185,13 @@ export default function Dashboard() {
         </div>
 
         <div className="dashboard-meta">
+          <button
+            className="btn btn-success btn-sm"
+            onClick={exportToExcel}
+            style={{ marginRight: '0.5rem' }}
+          >
+            Exportar Excel
+          </button>
           <div className="snapshot-indicator">
             <span className={`dot ${data.snapshotAtivo}`}></span>
             Snapshot: {data.snapshotAtivo === 'manha' ? 'Manha' : 'Tarde'}
@@ -136,21 +202,33 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* KPIs */}
+      {/* KPIs - Clickable */}
       <div className="kpi-grid">
         <div className="kpi-card">
           <div className="kpi-label">Total do Setor</div>
           <div className="kpi-value">{formatCurrency(data.kpis.totalSetor)}</div>
         </div>
-        <div className="kpi-card">
+        <div
+          className={`kpi-card kpi-clickable ${activeFilter === 'todos' ? 'kpi-active' : ''}`}
+          onClick={() => handleKpiClick('todos')}
+          style={{ cursor: 'pointer' }}
+        >
           <div className="kpi-label">Revendedores</div>
           <div className="kpi-value">{data.kpis.qtdRevendedores}</div>
         </div>
-        <div className="kpi-card">
+        <div
+          className={`kpi-card kpi-clickable ${activeFilter === 'perto_subir' ? 'kpi-active' : ''}`}
+          onClick={() => handleKpiClick('perto_subir')}
+          style={{ cursor: 'pointer' }}
+        >
           <div className="kpi-label">Perto de Subir</div>
           <div className="kpi-value success">{data.kpis.pertoDeSurbir}</div>
         </div>
-        <div className="kpi-card">
+        <div
+          className={`kpi-card kpi-clickable ${activeFilter === 'em_risco' ? 'kpi-active' : ''}`}
+          onClick={() => handleKpiClick('em_risco')}
+          style={{ cursor: 'pointer' }}
+        >
           <div className="kpi-label">Em Risco</div>
           <div className="kpi-value danger">{data.kpis.emRisco}</div>
         </div>
@@ -163,6 +241,21 @@ export default function Dashboard() {
           </div>
         )}
       </div>
+
+      {/* Active filter indicator */}
+      {activeFilter !== 'todos' && (
+        <div className="alert alert-info" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span>
+            Filtro ativo: <strong>{getFilterLabel()}</strong> ({filteredRevendedores.length} revendedores)
+          </span>
+          <button
+            className="btn btn-sm btn-secondary"
+            onClick={() => setActiveFilter('todos')}
+          >
+            Limpar filtro
+          </button>
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="tabs">
@@ -211,16 +304,22 @@ export default function Dashboard() {
       {/* Content based on tab */}
       {activeTab === 'cards' && (
         <div className="revendedor-grid">
-          {filteredRevendedores.map(rev => {
-            const comp = getComparativo(rev.codigoRevendedor)
-            return (
-              <RevendedorCard
-                key={rev.codigoRevendedor}
-                revendedor={rev}
-                comparativo={comp}
-              />
-            )
-          })}
+          {filteredRevendedores.length === 0 ? (
+            <div className="empty-state" style={{ gridColumn: '1 / -1' }}>
+              <p>Nenhum revendedor encontrado com os filtros atuais</p>
+            </div>
+          ) : (
+            filteredRevendedores.map(rev => {
+              const comp = getComparativo(rev.codigoRevendedor)
+              return (
+                <RevendedorCard
+                  key={rev.codigoRevendedor}
+                  revendedor={rev}
+                  comparativo={comp}
+                />
+              )
+            })
+          )}
         </div>
       )}
 
@@ -241,37 +340,45 @@ export default function Dashboard() {
                 </tr>
               </thead>
               <tbody>
-                {filteredRevendedores.map(rev => {
-                  const comp = getComparativo(rev.codigoRevendedor)
-                  return (
-                    <tr key={rev.codigoRevendedor}>
-                      <td>{rev.codigoRevendedor}</td>
-                      <td>{rev.nomeRevendedora}</td>
-                      <td>
-                        <span className={`badge ${getBadgeClass(rev.segmentacao.segmentoAtual)}`}>
-                          {rev.segmentacao.segmentoAtual}
-                        </span>
-                      </td>
-                      <td>{formatCurrency(rev.totalGeral)}</td>
-                      <td>{formatPercent(rev.segmentacao.progressoManter)}</td>
-                      <td>{formatPercent(rev.segmentacao.progressoSubir)}</td>
-                      <td>
-                        {rev.segmentacao.faltaSubir !== null
-                          ? formatCurrency(rev.segmentacao.faltaSubir)
-                          : '-'}
-                      </td>
-                      {data.comparativo && (
+                {filteredRevendedores.length === 0 ? (
+                  <tr>
+                    <td colSpan={data.comparativo ? 8 : 7} style={{ textAlign: 'center', padding: '2rem' }}>
+                      Nenhum revendedor encontrado com os filtros atuais
+                    </td>
+                  </tr>
+                ) : (
+                  filteredRevendedores.map(rev => {
+                    const comp = getComparativo(rev.codigoRevendedor)
+                    return (
+                      <tr key={rev.codigoRevendedor}>
+                        <td>{rev.codigoRevendedor}</td>
+                        <td>{rev.nomeRevendedora}</td>
                         <td>
-                          {comp && (
-                            <span className={`delta ${comp.delta > 0 ? 'positive' : comp.delta < 0 ? 'negative' : 'neutral'}`}>
-                              {comp.delta > 0 ? '+' : ''}{formatCurrency(comp.delta)}
-                            </span>
-                          )}
+                          <span className={`badge ${getBadgeClass(rev.segmentacao.segmentoAtual)}`}>
+                            {rev.segmentacao.segmentoAtual}
+                          </span>
                         </td>
-                      )}
-                    </tr>
-                  )
-                })}
+                        <td>{formatCurrency(rev.totalGeral)}</td>
+                        <td>{formatPercent(rev.segmentacao.progressoManter)}</td>
+                        <td>{formatPercent(rev.segmentacao.progressoSubir)}</td>
+                        <td>
+                          {rev.segmentacao.faltaSubir !== null
+                            ? formatCurrency(rev.segmentacao.faltaSubir)
+                            : '-'}
+                        </td>
+                        {data.comparativo && (
+                          <td>
+                            {comp && (
+                              <span className={`delta ${comp.delta > 0 ? 'positive' : comp.delta < 0 ? 'negative' : 'neutral'}`}>
+                                {comp.delta > 0 ? '+' : ''}{formatCurrency(comp.delta)}
+                              </span>
+                            )}
+                          </td>
+                        )}
+                      </tr>
+                    )
+                  })
+                )}
               </tbody>
             </table>
           </div>
